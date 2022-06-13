@@ -54,7 +54,8 @@ public class App extends Application {
     King whiteKing;
     King blackKing;
     String turn;
-
+    boolean toMove;
+    Piece curPieceSelected;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -81,8 +82,9 @@ public class App extends Application {
             }
             count++;
         }
-        setUpBoard();
+        
         setUpPieces();
+        setUpBoard();
         scene = new Scene(pane, 850, 850);
         stage.setScene(scene);
         stage.setTitle("Chess");
@@ -127,6 +129,7 @@ public class App extends Application {
 
     private void startGame() {
         turn = "white";
+
         scene.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
@@ -134,14 +137,32 @@ public class App extends Application {
                 int x = (int)event.getX();
                 int y = (int)event.getY();
                 int[] square = findSquare(x, y);
-                for (Piece piece: pieces) {
-                    // define all possible moves for correpsonding color turn
-                    if (piece.getColor().equals(turn) && piece.isAlive()) {  
-                        piece.setMoves(pieces);
+                if (!toMove) {
+                    for (Piece piece: pieces) {
+                        // define all possible moves for correpsonding color turn
+                        if (piece.getColor().equals(turn) && piece.isAlive()) {  
+                            piece.setMoves(pieces);
+                        }
+                        if (piece.getX() == square[0] && piece.getY() == square[1]) {
+                            curPieceSelected = piece;
+                            toMove = true;
+                        }
+                    }
+                }
+                if (toMove) {
+                    for (Location location: curPieceSelected.getMoves()) {
+                        if (location.getX() == square[0] && location.getY() == square[1]) {
+                            movePiece(curPieceSelected, square[0], square[1]);
+                        }
                     }
                 }
             }
         });
+    }
+
+    private void movePiece(Piece curPieceSelected, int x, int y) {
+        curPieceSelected.setX(x);
+        curPieceSelected.setY(y);
     }
 
     private int[] findSquare(int x, int y) { // returns the square coordinates given the clicked mouse coords
@@ -152,6 +173,8 @@ public class App extends Application {
     }
 
     private void setUpBoard() throws FileNotFoundException {
+        //TODO this should be ahcnged so that
+        //pieces should be changed after every move
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 if (j == 0) { // 8th rank

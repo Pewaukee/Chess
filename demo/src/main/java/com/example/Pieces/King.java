@@ -7,6 +7,7 @@ public class King extends Piece {
     protected boolean check;
     protected boolean stalemate;
     protected boolean checkmate;
+    protected String fileStr; 
 
 
     public King(int x, int y, String color) {
@@ -14,10 +15,16 @@ public class King extends Piece {
         this.check = false;
         this.stalemate = false;
         this.checkmate = false;
+        if (this.color.equals("white")) {
+            fileStr = "C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteKing.png";
+        } else {
+            fileStr = "C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\blackKing.png";
+        }
     }
 
     public boolean inCheck(ArrayList<Piece> pieces, String turn) { // see if a move causes check
-        if (turn.equals("white")) {
+        String color = this.getColor();
+        if (color.equals("white")) {
             for (Piece piece: pieces) {
                 if (piece.getColor().equals("black")) {
                     piece.setMoves(pieces);
@@ -30,7 +37,7 @@ public class King extends Piece {
                 }
             }
         }
-        if (turn.equals("black")) {
+        if (color.equals("black")) {
             for (Piece piece: pieces) {
                 if (piece.getColor().equals("white")) {
                     piece.setMoves(pieces);
