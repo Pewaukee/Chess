@@ -7,7 +7,6 @@ public class King extends Piece {
     protected boolean check;
     protected boolean stalemate;
     protected boolean checkmate;
-    protected String fileStr; 
 
 
     public King(int x, int y, String color) {
@@ -16,38 +15,26 @@ public class King extends Piece {
         this.stalemate = false;
         this.checkmate = false;
         if (this.color.equals("white")) {
-            fileStr = "C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteKing.png";
+            setFileString("C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteKing.png");
         } else {
-            fileStr = "C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\blackKing.png";
+            setFileString("C:\\Users\\kvsha\\Documents\\VSCode\\Java\\Chess\\demo\\src\\main\\resources\\com\\example\\PiecePics\\blackKing.png");
         }
     }
 
-    public boolean inCheck(ArrayList<Piece> pieces, String turn) { // see if a move causes check
-        String color = this.getColor();
-        if (color.equals("white")) {
-            for (Piece piece: pieces) {
-                if (piece.getColor().equals("black")) {
-                    piece.setMoves(pieces);
+    public boolean inCheck(ArrayList<Piece> pieces) { // see if a move causes check
+        String color = this.color;
+        String otherColor = color.equals("white") ? "black": "white";
+        for (Piece piece: pieces) {
+            if (piece.color.equals(otherColor) && piece.isAlive()) {
+                try {
+                    piece.setMoves(pieces, piece, this);
                     for (Location location: piece.getMoves()) {
                         if (this.x == location.getX() && this.y == location.getY()) {
                             this.check = true;
                             return true;
                         }
                     }
-                }
-            }
-        }
-        if (color.equals("black")) {
-            for (Piece piece: pieces) {
-                if (piece.getColor().equals("white")) {
-                    piece.setMoves(pieces);
-                    for (Location location: piece.getMoves()) {
-                        if (this.x == location.getX() && this.y == location.getY()) {
-                            this.check = true;
-                            return true;
-                        }
-                    }
-                }
+                } catch (NullPointerException e) {}
             }
         }
         this.check = false;
@@ -58,7 +45,7 @@ public class King extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
     
     @Override
-    public void setMoves(ArrayList<Piece> pieces) {
+    public void setMoves(ArrayList<Piece> pieces, Piece curPiece, King king) {
 
     }
 
