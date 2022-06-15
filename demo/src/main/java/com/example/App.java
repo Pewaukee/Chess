@@ -131,7 +131,6 @@ public class App extends Application {
                 int[] square = findSquare(x, y);
                 x = square[0];
                 y = square[1];
-                System.out.println(turn);
                 if (!toMove) {
                     for (Piece piece: pieces) {
                         // define all possible moves for correpsonding color turn
@@ -147,8 +146,10 @@ public class App extends Application {
                 }
                 else {
                     toMove = false;
+                    
+                    System.out.println(curPieceSelected.getClass());
+                    System.out.println(curPieceSelected.getMoves().size());
                     for (Location location: curPieceSelected.getMoves()) {
-                        System.out.println(location.getX() + " " + location.getY());
                         if (location.getX() == x && location.getY() == y) {
                             Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {

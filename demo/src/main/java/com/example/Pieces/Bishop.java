@@ -32,7 +32,7 @@ public class Bishop extends Piece {
         for (int i = 1; i <= 7; i++) { // 7 = max amount of direction on one diagonol
             // up and right
             location = new Location(x+i, y-i);
-            if (x+i <= 7 && y-i >= 0) {
+            if (inBounds(location)) {
                 if (upRight) {
                     occupiedPiece = isOccupied(pieces, location);
                     if (occupiedPiece == null) {res.add(location);} 
@@ -45,7 +45,7 @@ public class Bishop extends Piece {
             
             // up and left
             location = new Location(x-i, y-i);
-            if (x-i >= 0 && y-i >= 0) {
+            if (inBounds(location)) {
                 if (upLeft) {
                     occupiedPiece = isOccupied(pieces, location);
                     if (occupiedPiece == null) {res.add(location);} 
@@ -58,7 +58,7 @@ public class Bishop extends Piece {
 
             // down and right
             location = new Location(x+i, y+i);
-            if (x+i <= 7 && y+i <= 7) {
+            if (inBounds(location)) {
                 if (downRight) {
                     occupiedPiece = isOccupied(pieces, location);
                     if (occupiedPiece == null) {res.add(location);} 
@@ -71,7 +71,7 @@ public class Bishop extends Piece {
 
             // down and left
             location = new Location(x-i, y+i);
-            if (x-i >= 0 && y+i <= 7) {
+            if (inBounds(location)) {
                 if (downLeft) {
                     occupiedPiece = isOccupied(pieces, location);
                     if (occupiedPiece == null) {res.add(location);} 

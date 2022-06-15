@@ -64,7 +64,7 @@ public class King extends Piece {
             for (Location loc: res) {
                 this.x = loc.x;
                 this.y = loc.y;
-                if (king.inCheck(pieces)) {
+                if (this.inCheck(pieces)) {
                     toRemove.add(loc);
                 }
             }
