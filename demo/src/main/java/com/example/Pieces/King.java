@@ -22,14 +22,13 @@ public class King extends Piece {
     }
 
     public boolean inCheck(ArrayList<Piece> pieces) { // see if a move causes check
-        String color = this.color;
-        String otherColor = color.equals("white") ? "black": "white";
+        String otherColor = this.color.equals("white") ? "black": "white";
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor) && piece.isAlive()) {
                 try {
-                    piece.setMoves(pieces, piece, this);
+                    piece.setMoves(pieces, piece, this, false);
                     for (Location location: piece.getMoves()) {
-                        if (this.x == location.getX() && this.y == location.getY()) {
+                        if (this.x == location.x && this.y == location.y) {
                             this.check = true;
                             return true;
                         }
@@ -45,8 +44,37 @@ public class King extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
     
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece curPiece, King king) {
+    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
+        // movement s the same as a queen, but only one square
+        // could implement a distance formula in location class 
+        int x = this.x;
+        int y = this.y;
+        ArrayList<Location> res = new ArrayList<Location>();
+        Location location1 = new Location(this.x, this.y);
+        Queen queen = new Queen(this.x, this.y, this.color);
+        queen.setMoves(pieces, piece, king, lookForCheck);
+        ArrayList<Location> toRemove = new ArrayList<Location>();
+        res = queen.getMoves();
+        for (Location move: res) {
+            if (distance(location1, move) >= 1.5) { // more than one square away
+                toRemove.add(move);
+            }
+        }
+        if (lookForCheck) {
+            for (Location loc: res) {
+                this.x = loc.x;
+                this.y = loc.y;
+                if (king.inCheck(pieces)) {
+                    toRemove.add(loc);
+                }
+            }
+            for (Location loc: toRemove) {res.remove(loc);}
+            this.x = x;
+            this.y = y;
+        }
+        this.moves = res;
 
+        
     }
 
 

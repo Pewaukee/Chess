@@ -17,7 +17,7 @@ public class Pawn extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
 
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece curPiece, King king) {
+    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
         /* pawn moves
          * a pawn has 4 available moves at a given time,
          * not dealing with en passant right now, but 
@@ -26,6 +26,8 @@ public class Pawn extends Piece {
          * side
          */
         ArrayList<Location> res = new ArrayList<Location>();
+        int x = this.x;
+        int y = this.y;
         if (color.equals("white")) {
             //up 1 and not at the end of the board
             Location upOne = new Location(x, y-1);
@@ -39,17 +41,15 @@ public class Pawn extends Piece {
             //check diagonals
             Location upRight = new Location(x+1, y-1);
             Location upLeft = new Location(x-1, y-1);
-            if (x > 0 && x < 7 && y > 0) {
-                Piece occupiedPiece;
-                try {
-                    occupiedPiece = isOccupied(pieces, upRight);
-                    if (occupiedPiece.color.equals("black")) {res.add(upRight);}
-                } catch (NullPointerException e) {}
-                try {
-                    occupiedPiece = isOccupied(pieces, upLeft);
-                    if (occupiedPiece.color.equals("black")) {res.add(upLeft);}
-                } catch (NullPointerException e) {}
-            }
+            Piece occupiedPiece;
+            try {
+                occupiedPiece = isOccupied(pieces, upRight);
+                if (occupiedPiece.color.equals("black")) {res.add(upRight);}
+            } catch (NullPointerException e) {}
+            try {
+                occupiedPiece = isOccupied(pieces, upLeft);
+                if (occupiedPiece.color.equals("black")) {res.add(upLeft);}
+            } catch (NullPointerException e) {}
         }
         else if (color.equals("black")) {
             // up 1 and not at end of the board
@@ -64,33 +64,32 @@ public class Pawn extends Piece {
             //check diagonals
             Location downRight = new Location(x+1, y+1);
             Location downLeft = new Location(x-1, y+1);
-            if (x > 0 && x < 7 && y < 7) {
-                Piece occupiedPiece;
-                try {
-                    occupiedPiece = isOccupied(pieces, downRight);
-                    if (occupiedPiece.color.equals("white")) {res.add(downRight);}
-                } catch (NullPointerException e) {}
-                try {
-                    occupiedPiece = isOccupied(pieces, downLeft);
-                    if (occupiedPiece.color.equals("white")) {res.add(downLeft);}
-                } catch (NullPointerException e) {}
-            }
+            Piece occupiedPiece;
+            try {
+                occupiedPiece = isOccupied(pieces, downRight);
+                if (occupiedPiece.color.equals("white")) {res.add(downRight);}
+            } catch (NullPointerException e) {}
+            try {
+                occupiedPiece = isOccupied(pieces, downLeft);
+                if (occupiedPiece.color.equals("white")) {res.add(downLeft);}
+            } catch (NullPointerException e) {}
+            
         }
-        // TODO determine if any of the moves results in a check, stalls out the program sometimes
-        //int oldX = curPiece.x;
-        //int oldY = curPiece.y;
-        ///ArrayList<Location> toRemove = new ArrayList<Location>();
-        //for (Location location: res) {
-            //curPiece.x = location.x;
-            //curPiece.y = location.y;
-            //if (king.inCheck(pieces)) {
-                //toRemove.add(location);
-                //System.out.println("we got em");
-            //}
-        //}
-        //for (Location location: toRemove) {res.remove(location);}
-        //curPiece.x = oldX;
-        //curPiece.y = oldY;
+        
+        // TODO determine if any of the moves results in a check, stalls out the program
+        if (lookForCheck) {
+            ArrayList<Location> toRemove = new ArrayList<Location>();
+            for (Location location: res) {
+                this.x = location.x;
+                this.y = location.y;
+                if (king.inCheck(pieces)) {
+                    toRemove.add(location);
+                }
+            }
+            for (Location location: toRemove) {res.remove(location);}
+            this.x = x;
+            this.y = y;
+        }
         this.moves = res;
     }
 }

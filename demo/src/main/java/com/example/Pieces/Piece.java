@@ -15,10 +15,6 @@ public class Piece extends Location {
         this.alive = true;
     }
 
-    public Piece() {
-        super(-1, -1);
-    }
-
     public String getColor() {return color;}
 
     public String getFileString() {return this.fileString;}
@@ -29,7 +25,7 @@ public class Piece extends Location {
 
     // these are just placement functions to be overwritten in subclasses
     public ArrayList<Location> getMoves() {return moves;}
-    public void setMoves(ArrayList<Piece> pieces, Piece curPiece, King king) {
+    public void setMoves(ArrayList<Piece> pieces, Piece curPiece, King king, boolean lookForCheck) {
 
     }
 

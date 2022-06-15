@@ -1,6 +1,7 @@
 package com.example;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Group;
@@ -136,7 +137,7 @@ public class App extends Application {
                         // define all possible moves for correpsonding color turn
                         if (piece.getColor().equals(turn) && piece.isAlive()) {  
                             King king = turn.equals("white") ? whiteKing: blackKing;
-                            piece.setMoves(pieces, piece, king);
+                            piece.setMoves(pieces, piece, king, true); // TODO dont need piece arg in set moves func
                         }
                         if (piece.getX() == x && piece.getY() == y && piece.getColor().equals(turn)) {
                             curPieceSelected = piece;
@@ -149,12 +150,12 @@ public class App extends Application {
                     for (Location location: curPieceSelected.getMoves()) {
                         System.out.println(location.getX() + " " + location.getY());
                         if (location.getX() == x && location.getY() == y) {
-                            Piece occupiedPiece = new Piece();
-                            occupiedPiece = occupiedPiece.isOccupied(pieces, new Location(x, y));
+                            Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
                                 // if a piece is took
                                 System.out.println("Took");
                                 occupiedPiece.setAlive(false);
+                                pieces.remove(occupiedPiece);
                             }                            
                             curPieceSelected.setX(x);
                             curPieceSelected.setY(y);
@@ -183,9 +184,7 @@ public class App extends Application {
         //TODO this should be ahcnged so that
         //pieces should be changed after every move
         for (Piece piece: pieces) {
-            if (piece.isAlive()) {
-                setImage(piece.getFileString(), piece.getX(), piece.getY());
-            }
+            setImage(piece.getFileString(), piece.getX(), piece.getY());
         }
         /*for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -244,10 +243,17 @@ public class App extends Application {
 
 }
 
+// TODO delete the piece argument for the setMoves() functions?
+// TODO the blocking of checks doesn't work as intended, maybe the checking mechanism doesn't in general
+
 /* additional notes
  *
  * https://www.geeksforgeeks.org/class-type-casting-in-java/#:~:text=Typecasting%20is%20the%20assessment%20of,direction%20to%20the%20inheritance%20tree.
  * shows how to Override functions in parent classes to properly call functions of subclasses
  * just use the same name and arguments with @Override
+ * 
+ * java platform se binary was telling me that my program was in an infinite loop
+ * 
+ * 
  * 
  */
