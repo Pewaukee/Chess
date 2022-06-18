@@ -58,17 +58,7 @@ public class Knight extends Piece{
         helper(pieces, location, res, otherColor);
 
         if (lookForCheck) {
-            ArrayList<Location> toRemove = new ArrayList<Location>();
-            for (Location loc: res) {
-                this.x = loc.x;
-                this.y = loc.y;
-                if (king.inCheck(pieces)) {
-                    toRemove.add(loc);
-                }
-            }
-            for (Location loc: toRemove) {res.remove(loc);}
-            this.x = x;
-            this.y = y;
+            res = king.findChecks(res, piece, king, pieces, x, y);
         }
         this.moves = res;
 

@@ -78,17 +78,8 @@ public class Pawn extends Piece {
         
         // TODO determine if any of the moves results in a check, stalls out the program
         if (lookForCheck) {
-            ArrayList<Location> toRemove = new ArrayList<Location>();
-            for (Location location: res) {
-                this.x = location.x;
-                this.y = location.y;
-                if (king.inCheck(pieces)) {
-                    toRemove.add(location);
-                }
-            }
-            for (Location location: toRemove) {res.remove(location);}
-            this.x = x;
-            this.y = y;
+            res = king.findChecks(res, piece, king, pieces, x, y);
+            // TODO make all classes into one piece class
         }
         this.moves = res;
     }

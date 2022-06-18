@@ -136,7 +136,7 @@ public class App extends Application {
                         // define all possible moves for correpsonding color turn
                         if (piece.getColor().equals(turn) && piece.isAlive()) {  
                             King king = turn.equals("white") ? whiteKing: blackKing;
-                            piece.setMoves(pieces, piece, king, true); // TODO dont need piece arg in set moves func
+                            piece.setMoves(pieces, piece, king, true);
                         }
                         if (piece.getX() == x && piece.getY() == y && piece.getColor().equals(turn)) {
                             curPieceSelected = piece;
@@ -150,6 +150,7 @@ public class App extends Application {
                     System.out.println(curPieceSelected.getClass());
                     System.out.println(curPieceSelected.getMoves().size());
                     for (Location location: curPieceSelected.getMoves()) {
+                        System.out.println(location.getX() + " " + location.getY());
                         if (location.getX() == x && location.getY() == y) {
                             Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
@@ -163,6 +164,7 @@ public class App extends Application {
                             try {
                                 pieceGroup.getChildren().clear();
                                 drawBoard();
+                                
                                 // if turn is white, then turn is black and vice versa
                                 turn = turn.equals("white") ? "black": "white";
                             } catch (FileNotFoundException e) {e.printStackTrace();}
@@ -254,6 +256,19 @@ public class App extends Application {
  * just use the same name and arguments with @Override
  * 
  * java platform se binary was telling me that my program was in an infinite loop
+ * 
+ * extra code to identify checks
+ * ArrayList<Location> toRemove = new ArrayList<Location>();
+            for (Location loc: res) {
+                this.x = loc.x;
+                this.y = loc.y;
+                if (king.inCheck(pieces)) {
+                    toRemove.add(loc);
+                }
+            }
+            for (Location loc: toRemove) {res.remove(loc);}
+            this.x = x;
+            this.y = y;
  * 
  * 
  * 

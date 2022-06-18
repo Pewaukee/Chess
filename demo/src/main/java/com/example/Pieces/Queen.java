@@ -18,18 +18,18 @@ public class Queen extends Piece {
     @Override
     public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
         // queen's moves are a combination of rook and bishop moves, diagonols and non-diagonols
-        Bishop bishop = new Bishop(this.x, this.y, this.color);
+        /*Bishop bishop = new Bishop(this.x, this.y, this.color);
         Rook rook = new Rook(this.x, this.y, this.color);
         ArrayList<Location> res = new ArrayList<Location>();
         bishop.setMoves(pieces, bishop, king, lookForCheck);
         rook.setMoves(pieces, rook, king, lookForCheck);
         res.addAll(bishop.getMoves());
-        res.addAll(rook.getMoves());
+        res.addAll(rook.getMoves());*/
         
         //TODO the below code works, above does not
 
         //System.out.println(res.size());
-        /*ArrayList<Location> res = new ArrayList<Location>();
+        ArrayList<Location> res = new ArrayList<Location>();
         int x = this.x;
         int y = this.y;
         Location location;
@@ -144,19 +144,8 @@ public class Queen extends Piece {
             }
         }
         if (lookForCheck) {
-            ArrayList<Location> toRemove = new ArrayList<Location>();
-            for (Location loc: res) {
-                this.x = loc.x;
-                this.y = loc.y;
-                if (king.inCheck(pieces)) {
-                    toRemove.add(loc);
-                }
-            }
-            for (Location loc: toRemove) {res.remove(loc);}
-            this.x = x;
-            this.y = y;
+            res = king.findChecks(res, piece, king, pieces, x, y);
         }
-        this.moves = res;*/
         this.moves = res;
     }
 }

@@ -21,22 +21,44 @@ public class King extends Piece {
         }
     }
 
-    public boolean inCheck(ArrayList<Piece> pieces) { // see if a move causes check
-        String otherColor = this.color.equals("white") ? "black": "white";
+    public ArrayList<Location> findChecks(ArrayList<Location> res, Piece piece, King king, ArrayList<Piece> pieces, int x, int y) {
+        ArrayList<Location> toRemove = new ArrayList<Location>();
+        for (Location location: res) {
+            piece.x = location.x;
+            piece.y = location.y;
+            Piece occupiedPiece = isOccupied(pieces, location);
+            if (occupiedPiece != null) {
+                occupiedPiece.alive = false;
+            }
+            if (inCheck(pieces, king)) {
+                toRemove.add(location);
+            }
+            try {
+                occupiedPiece.alive = true; // occupied piece may be null
+            } catch (NullPointerException e) {}
+        }
+        for (Location location: toRemove) {
+            System.out.println(location.x + " x " + location.y);res.remove(location);}
+        piece.x = x;
+        piece.y = y;
+        return res;
+    }
+
+    public boolean inCheck(ArrayList<Piece> pieces, King king) { // see if a move causes check
+        String otherColor = king.color.equals("white") ? "black": "white";
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor) && piece.isAlive()) {
-                try {
-                    piece.setMoves(pieces, piece, this, false);
-                    for (Location location: piece.getMoves()) {
-                        if (this.x == location.x && this.y == location.y) {
-                            this.check = true;
-                            return true;
-                        }
+                piece.setMoves(pieces, piece, king, false);
+                for (Location location: piece.getMoves()) {
+                    if (king.x == location.x && king.y == location.y) {
+                        System.out.println(location.x + " k " + location.y);
+                        king.check = true;
+                        return true;
                     }
-                } catch (NullPointerException e) {}
+                }
             }
         }
-        this.check = false;
+        king.check = false;
         return false;
     }
 
@@ -45,8 +67,8 @@ public class King extends Piece {
     
     @Override
     public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
-        // movement s the same as a queen, but only one square
-        // could implement a distance formula in location class 
+        // movement is the same as a queen, but only one square
+        // implemented a distance formula in location class 
         int x = this.x;
         int y = this.y;
         ArrayList<Location> res = new ArrayList<Location>();
@@ -60,17 +82,9 @@ public class King extends Piece {
                 toRemove.add(move);
             }
         }
+        for (Location loc: toRemove) {res.remove(loc);}
         if (lookForCheck) {
-            for (Location loc: res) {
-                this.x = loc.x;
-                this.y = loc.y;
-                if (this.inCheck(pieces)) {
-                    toRemove.add(loc);
-                }
-            }
-            for (Location loc: toRemove) {res.remove(loc);}
-            this.x = x;
-            this.y = y;
+            res = findChecks(res, piece, king, pieces, x, y);
         }
         this.moves = res;
 
