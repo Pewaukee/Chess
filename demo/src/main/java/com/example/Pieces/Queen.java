@@ -2,7 +2,7 @@ package com.example.Pieces;
 
 import java.util.ArrayList;
 
-public class Queen extends Piece {
+public class Queen extends Piece2 {
 
     public Queen(int x, int y, String color) {
         super(x, y, color);
@@ -16,7 +16,7 @@ public class Queen extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
 
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
+    public void setMoves(ArrayList<Piece2> pieces, Piece2 piece, King king, boolean lookForCheck) {
         // queen's moves are a combination of rook and bishop moves, diagonols and non-diagonols
         /*Bishop bishop = new Bishop(this.x, this.y, this.color);
         Rook rook = new Rook(this.x, this.y, this.color);
@@ -33,7 +33,7 @@ public class Queen extends Piece {
         int x = this.x;
         int y = this.y;
         Location location;
-        Piece occupiedPiece;
+        Piece2 occupiedPiece;
 
         boolean upRight, upLeft, downRight, downLeft, up, down, left, right;
         upRight = upLeft = downRight = downLeft = up = down = left = right = true;

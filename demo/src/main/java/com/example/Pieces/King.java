@@ -2,7 +2,7 @@ package com.example.Pieces;
 
 import java.util.ArrayList;
 
-public class King extends Piece {
+public class King extends Piece2 {
 
     protected boolean check;
     protected boolean stalemate;
@@ -21,12 +21,12 @@ public class King extends Piece {
         }
     }
 
-    public ArrayList<Location> findChecks(ArrayList<Location> res, Piece piece, King king, ArrayList<Piece> pieces, int x, int y) {
+    public ArrayList<Location> findChecks(ArrayList<Location> res, Piece2 piece, King king, ArrayList<Piece2> pieces, int x, int y) {
         ArrayList<Location> toRemove = new ArrayList<Location>();
         for (Location location: res) {
             piece.x = location.x;
             piece.y = location.y;
-            Piece occupiedPiece = isOccupied(pieces, location);
+            Piece2 occupiedPiece = isOccupied(pieces, location);
             if (occupiedPiece != null) {
                 occupiedPiece.alive = false;
             }
@@ -44,14 +44,14 @@ public class King extends Piece {
         return res;
     }
 
-    public boolean inCheck(ArrayList<Piece> pieces, King king) { // see if a move causes check
+    public boolean inCheck(ArrayList<Piece2> pieces, King king) { // see if a move causes check
         String otherColor = king.color.equals("white") ? "black": "white";
-        for (Piece piece: pieces) {
+        for (Piece2 piece: pieces) {
             if (piece.color.equals(otherColor) && piece.isAlive()) {
                 piece.setMoves(pieces, piece, king, false);
                 for (Location location: piece.getMoves()) {
                     if (king.x == location.x && king.y == location.y) {
-                        System.out.println(location.x + " k " + location.y);
+                        System.out.println(king.x + " k " + king.y);
                         king.check = true;
                         return true;
                     }
@@ -66,7 +66,7 @@ public class King extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
     
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
+    public void setMoves(ArrayList<Piece2> pieces, Piece2 piece, King king, boolean lookForCheck) {
         // movement is the same as a queen, but only one square
         // implemented a distance formula in location class 
         int x = this.x;

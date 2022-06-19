@@ -2,7 +2,7 @@ package com.example.Pieces;
 
 import java.util.ArrayList;
 
-public class Knight extends Piece{
+public class Knight extends Piece2{
 
     public Knight(int x, int y, String color) {
         super(x, y, color);
@@ -16,13 +16,13 @@ public class Knight extends Piece{
     public ArrayList<Location> getMoves() {return moves;}
 
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
+    public void setMoves(ArrayList<Piece2> pieces, Piece2 piece, King king, boolean lookForCheck) {
         // knight has 8 valid moves
         ArrayList<Location> res = new ArrayList<Location>();
         int x = this.x;
         int y = this.y;
         Location location;
-        Piece occupiedPiece;
+        Piece2 occupiedPiece;
         String otherColor = this.color.equals("white") ? "black": "white";
 
         // up 1, left 2
@@ -64,8 +64,8 @@ public class Knight extends Piece{
 
 
     }
-    private void helper(ArrayList<Piece> pieces, Location location, ArrayList<Location> res, String otherColor) {
-        Piece occupiedPiece;
+    private void helper(ArrayList<Piece2> pieces, Location location, ArrayList<Location> res, String otherColor) {
+        Piece2 occupiedPiece;
         if (inBounds(location)) {
             occupiedPiece = isOccupied(pieces, location);
             if (occupiedPiece == null) {res.add(location);}

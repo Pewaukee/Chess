@@ -39,12 +39,12 @@ public class App extends Application {
     private static Image image;
     private static ImageView imageView;
     private static int[] coordinates;
-    private static ArrayList<Piece> pieces = new ArrayList<Piece>();
+    private static ArrayList<Piece2> pieces = new ArrayList<Piece2>();
     private static King whiteKing;
     private static King blackKing;
     private static String turn;
     private static boolean toMove;
-    private static Piece curPieceSelected;
+    private static Piece2 curPieceSelected;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -91,7 +91,7 @@ public class App extends Application {
          */
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                Piece piece = null;
+                Piece2 piece = null;
                 if (j == 0) { // 8th rank
                     if (i == 0 || i == 7) {piece = new Rook(i, j, "black");} // add black rook
                     if (i == 1 || i == 6) {piece = new Knight(i, j, "black");} // add black knight
@@ -132,7 +132,7 @@ public class App extends Application {
                 x = square[0];
                 y = square[1];
                 if (!toMove) {
-                    for (Piece piece: pieces) {
+                    for (Piece2 piece: pieces) {
                         // define all possible moves for correpsonding color turn
                         if (piece.getColor().equals(turn) && piece.isAlive()) {  
                             King king = turn.equals("white") ? whiteKing: blackKing;
@@ -152,7 +152,7 @@ public class App extends Application {
                     for (Location location: curPieceSelected.getMoves()) {
                         System.out.println(location.getX() + " " + location.getY());
                         if (location.getX() == x && location.getY() == y) {
-                            Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
+                            Piece2 occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
                                 // if a piece is took
                                 System.out.println("Took");
@@ -186,7 +186,7 @@ public class App extends Application {
     private void drawBoard() throws FileNotFoundException {
         //TODO this should be ahcnged so that
         //pieces should be changed after every move
-        for (Piece piece: pieces) {
+        for (Piece2 piece: pieces) {
             setImage(piece.getFileString(), piece.getX(), piece.getY());
         }
         /*for (int i = 0; i < 8; i++) {
@@ -273,3 +273,6 @@ public class App extends Application {
  * 
  * 
  */
+
+
+ 

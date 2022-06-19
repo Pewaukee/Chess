@@ -2,7 +2,7 @@ package com.example.Pieces;
 
 import java.util.ArrayList;
 
-public class Pawn extends Piece {
+public class Pawn extends Piece2 {
     
     public Pawn(int x, int y, String color) {
         super(x, y, color);
@@ -17,7 +17,7 @@ public class Pawn extends Piece {
     public ArrayList<Location> getMoves() {return moves;}
 
     @Override
-    public void setMoves(ArrayList<Piece> pieces, Piece piece, King king, boolean lookForCheck) {
+    public void setMoves(ArrayList<Piece2> pieces, Piece2 piece, King king, boolean lookForCheck) {
         /* pawn moves
          * a pawn has 4 available moves at a given time,
          * not dealing with en passant right now, but 
@@ -41,7 +41,7 @@ public class Pawn extends Piece {
             //check diagonals
             Location upRight = new Location(x+1, y-1);
             Location upLeft = new Location(x-1, y-1);
-            Piece occupiedPiece;
+            Piece2 occupiedPiece;
             try {
                 occupiedPiece = isOccupied(pieces, upRight);
                 if (occupiedPiece.color.equals("black")) {res.add(upRight);}
@@ -64,7 +64,7 @@ public class Pawn extends Piece {
             //check diagonals
             Location downRight = new Location(x+1, y+1);
             Location downLeft = new Location(x-1, y+1);
-            Piece occupiedPiece;
+            Piece2 occupiedPiece;
             try {
                 occupiedPiece = isOccupied(pieces, downRight);
                 if (occupiedPiece.color.equals("white")) {res.add(downRight);}
