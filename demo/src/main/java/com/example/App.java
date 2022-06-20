@@ -41,6 +41,7 @@ public class App extends Application {
     private static ArrayList<Piece> pieces = new ArrayList<Piece>();
     private static Piece whiteKing;
     private static Piece blackKing;
+    private static Piece king;
     private static String turn;
     private static boolean toMove;
     private static Piece curPieceSelected;
@@ -143,7 +144,7 @@ public class App extends Application {
                 int[] square = findSquare(x, y);
                 x = square[0];
                 y = square[1];
-                Piece king = turn.equals("white") ? whiteKing: blackKing;
+                king = turn.equals("white") ? whiteKing: blackKing;
                 if (!toMove) {
                     for (Piece piece: pieces) {
                         if (piece.getX() == x && piece.getY() == y && piece.getColor().equals(turn)) {
@@ -157,13 +158,13 @@ public class App extends Application {
                 }
                 else {
                     toMove = false;
-                    System.out.println(curPieceSelected.getMoves().size());
+                    
                     for (Location location: curPieceSelected.getMoves()) {
                         if (location.getX() == x && location.getY() == y) {
                             Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
                                 // if a piece is took
-                                System.out.println("Took");
+                                
                                 occupiedPiece.setAlive(false);
                                 pieces.remove(occupiedPiece);
                             }                            
@@ -177,12 +178,12 @@ public class App extends Application {
                                 turn = turn.equals("white") ? "black": "white";
                                 king = turn.equals("white") ? whiteKing: blackKing;
                                 king.check = king.checkStatus(pieces); // determine if the king is in check
-                                //TODO a stalemate is evaluated as a checkmate
-                                if (king.checkMate(pieces, turn, king)) {
+                                System.out.println(king.check + "\n");
+                                if (king.checkMate(pieces, turn)) {
                                     String otherColor = turn.equals("white") ? "black": "white";
                                     System.out.println("checkmate for " + otherColor);
                                 }
-                                if (king.staleMate(pieces, turn, king)) {
+                                if (king.staleMate(pieces, turn)) {
                                     System.out.println("stalemate");
                                 }
                             } catch (FileNotFoundException e) {e.printStackTrace(); System.out.println("paths are likely wrong");}
@@ -202,8 +203,6 @@ public class App extends Application {
     }
 
     private void drawBoard() throws FileNotFoundException {
-        //TODO this should be ahcnged so that
-        //pieces should be changed after every move
         for (Piece piece: pieces) {
             setImage(piece.getFileString(), piece.getX(), piece.getY());
         }
@@ -264,8 +263,6 @@ public class App extends Application {
 
 }
 
-// TODO delete the piece argument for the setMoves() functions?
-// TODO the blocking of checks doesn't work as intended, maybe the checking mechanism doesn't in general
 
 /* additional notes
  *

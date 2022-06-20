@@ -69,6 +69,7 @@ public class Piece extends Location {
 
     private ArrayList<Location> pawnMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck,  
         ArrayList<Location> res, String otherColor) {
+        // TODO en passant, promotion
         switch (piece.color) {
             case "white":
                 //up 1 and not at the end of the board
@@ -250,6 +251,7 @@ public class Piece extends Location {
     private ArrayList<Location> kingMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
         // king's moves are all the queen's moves, but only for one square
+        //TODO castle
         queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
         ArrayList<Location> toRemove = new ArrayList<Location>();
         for (Location location: res) {
@@ -312,25 +314,23 @@ public class Piece extends Location {
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor) && piece.isAlive()) {
                 piece.setMoves(pieces, piece, king, false);
-                ArrayList<Location> moves = piece.getMoves();
-                for (int i = 0; i < moves.size(); i++) {
-                    Location location = moves.get(i);
+                for (Location location: piece.getMoves()) {
                     if (king.x == location.x && king.y == location.y) {
-                        king.check = true;
                         return true;
-                    } // TODO  find out how to give checks properly
+                    }
                 }
             }
         }
-        king.check = false;
         return false;
     }
 
     public boolean checkStatus(ArrayList<Piece> pieces) {
         /*
          * doing this.check = true and this.check = false did not work,
-         * had to set as a boolean returned function and change the value
+         * had to set as a boolean returnable function and change the value
+         * that doesn't seem to prevent the stalemate bug
          */
+        System.out.println(this.color + " " + this.check);
         String otherColor = this.color.equals("white") ? "black": "white";
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor)) {
@@ -345,7 +345,7 @@ public class Piece extends Location {
         return false;
     }
     
-    public boolean checkMate(ArrayList<Piece> pieces, String turn, Piece king) {
+    public boolean checkMate(ArrayList<Piece> pieces, String turn) {
         int counter = 0;
         for (Piece piece: pieces) {
             if (piece.color.equals(turn)) {
@@ -354,12 +354,12 @@ public class Piece extends Location {
             }
             
         }
-        if (counter == 0 && king.check) return true;
+        if (counter == 0 && this.check) return true;
         else return false;
 
     }
 
-    public boolean staleMate(ArrayList<Piece> pieces, String turn, Piece king) {
+    public boolean staleMate(ArrayList<Piece> pieces, String turn) {
         int counter = 0;
         for (Piece piece: pieces) {
             if (piece.color.equals(turn)) {
@@ -367,7 +367,7 @@ public class Piece extends Location {
                 counter = counter + piece.getMoves().size();
             }
         }
-        if (counter == 0 && !king.check) return true;
+        if (counter == 0 && !this.check) return true;
         return false;
     }
 }
