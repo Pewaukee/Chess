@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import com.example.Pieces.*;
 
 /**
  * JavaFX App
@@ -39,12 +38,25 @@ public class App extends Application {
     private static Image image;
     private static ImageView imageView;
     private static int[] coordinates;
-    private static ArrayList<Piece2> pieces = new ArrayList<Piece2>();
-    private static King whiteKing;
-    private static King blackKing;
+    private static ArrayList<Piece> pieces = new ArrayList<Piece>();
+    private static Piece whiteKing;
+    private static Piece blackKing;
     private static String turn;
     private static boolean toMove;
-    private static Piece2 curPieceSelected;
+    private static Piece curPieceSelected;
+    
+    private static String whiteRookFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteRook.png";
+    private static String blackRookFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackRook.png";
+    private static String whiteKnightFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteKnight.png";
+    private static String blackKnightFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackKnight.png";
+    private static String whiteBishopFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteBishop.png";
+    private static String blackBishopFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackBishop.png";
+    private static String whiteQueenFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteQueen.png";
+    private static String blackQueenFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackQueen.png";
+    private static String whiteKingFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteKing.png";
+    private static String blackKingFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackKing.png";
+    private static String whitePawnFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whitePawn.png";
+    private static String blackPawnFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackPawn.png";
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -91,27 +103,27 @@ public class App extends Application {
          */
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                Piece2 piece = null;
+                Piece piece = null;
                 if (j == 0) { // 8th rank
-                    if (i == 0 || i == 7) {piece = new Rook(i, j, "black");} // add black rook
-                    if (i == 1 || i == 6) {piece = new Knight(i, j, "black");} // add black knight
-                    if (i == 2 || i == 5) {piece = new Bishop(i, j, "black");} // add black bishop
-                    if (i == 3) {piece = new Queen(i, j, "black");} // add black queen
+                    if (i == 0 || i == 7) {piece = new Piece(i, j, "black", "rook", blackRookFileStr);} // add black rook
+                    if (i == 1 || i == 6) {piece = new Piece(i, j, "black", "knight", blackKnightFileStr);} // add black knight
+                    if (i == 2 || i == 5) {piece = new Piece(i, j, "black", "bishop", blackBishopFileStr);} // add black bishop
+                    if (i == 3) {piece = new Piece(i, j, "black", "queen", blackQueenFileStr);} // add black queen
                     if (i == 4) { // add black king
-                        piece = new King(i, j, "black"); 
-                        blackKing = new King(i, j, "black");
+                        piece = new Piece(i, j, "black", "king", blackKingFileStr); 
+                        blackKing = piece;
                     } 
                 }
-                if (j == 1) {piece = new Pawn(i, j, "black");} // add black pawns
-                if (j == 6) {piece = new Pawn(i, j, "white");} // add white pawns
+                if (j == 1) {piece = new Piece(i, j, "black", "pawn", blackPawnFileStr);} // add black pawns
+                if (j == 6) {piece = new Piece(i, j, "white", "pawn", whitePawnFileStr);} // add white pawns
                 if (j == 7) { // 1st rank
-                    if (i == 0 || i == 7) {piece = new Rook(i, j, "white");} // add white rook
-                    if (i == 1 || i == 6) {piece = new Knight(i, j, "white");} // add white knight
-                    if (i == 2 || i == 5) {piece = new Bishop(i, j, "white");} // add white bishop
-                    if (i == 3) {piece = new Queen(i, j, "white");} // add white queen
+                    if (i == 0 || i == 7) {piece = new Piece(i, j, "white", "rook", whiteRookFileStr);} // add white rook
+                    if (i == 1 || i == 6) {piece = new Piece(i, j, "white", "knight", whiteKnightFileStr);} // add white knight
+                    if (i == 2 || i == 5) {piece = new Piece(i, j, "white", "bishop", whiteBishopFileStr);} // add white bishop
+                    if (i == 3) {piece = new Piece(i, j, "white", "queen", whiteQueenFileStr);} // add white queen
                     if (i == 4) { // add white king
-                        piece = new King(i, j, "white");
-                        whiteKing = new King(i, j, "white");
+                        piece = new Piece(i, j, "white", "king", whiteKingFileStr);
+                        whiteKing = piece;
                     } 
                 }
                 if (piece != null) {pieces.add(piece);}
@@ -131,28 +143,24 @@ public class App extends Application {
                 int[] square = findSquare(x, y);
                 x = square[0];
                 y = square[1];
+                Piece king = turn.equals("white") ? whiteKing: blackKing;
                 if (!toMove) {
-                    for (Piece2 piece: pieces) {
-                        // define all possible moves for correpsonding color turn
-                        if (piece.getColor().equals(turn) && piece.isAlive()) {  
-                            King king = turn.equals("white") ? whiteKing: blackKing;
-                            piece.setMoves(pieces, piece, king, true);
-                        }
+                    for (Piece piece: pieces) {
                         if (piece.getX() == x && piece.getY() == y && piece.getColor().equals(turn)) {
                             curPieceSelected = piece;
                             toMove = true;
                         }
-                    }
+                    } 
+                    try {
+                        curPieceSelected.setMoves(pieces, curPieceSelected, king, true);
+                    } catch (NullPointerException e) {} // if selected a piece with opposite color as turn
                 }
                 else {
                     toMove = false;
-                    
-                    System.out.println(curPieceSelected.getClass());
                     System.out.println(curPieceSelected.getMoves().size());
                     for (Location location: curPieceSelected.getMoves()) {
-                        System.out.println(location.getX() + " " + location.getY());
                         if (location.getX() == x && location.getY() == y) {
-                            Piece2 occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
+                            Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
                                 // if a piece is took
                                 System.out.println("Took");
@@ -167,7 +175,17 @@ public class App extends Application {
                                 
                                 // if turn is white, then turn is black and vice versa
                                 turn = turn.equals("white") ? "black": "white";
-                            } catch (FileNotFoundException e) {e.printStackTrace();}
+                                king = turn.equals("white") ? whiteKing: blackKing;
+                                king.check = king.checkStatus(pieces); // determine if the king is in check
+                                //TODO a stalemate is evaluated as a checkmate
+                                if (king.checkMate(pieces, turn, king)) {
+                                    String otherColor = turn.equals("white") ? "black": "white";
+                                    System.out.println("checkmate for " + otherColor);
+                                }
+                                if (king.staleMate(pieces, turn, king)) {
+                                    System.out.println("stalemate");
+                                }
+                            } catch (FileNotFoundException e) {e.printStackTrace(); System.out.println("paths are likely wrong");}
                         }
                     }
                 }
@@ -186,7 +204,7 @@ public class App extends Application {
     private void drawBoard() throws FileNotFoundException {
         //TODO this should be ahcnged so that
         //pieces should be changed after every move
-        for (Piece2 piece: pieces) {
+        for (Piece piece: pieces) {
             setImage(piece.getFileString(), piece.getX(), piece.getY());
         }
         /*for (int i = 0; i < 8; i++) {

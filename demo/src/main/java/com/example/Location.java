@@ -1,4 +1,4 @@
-package com.example.Pieces;
+package com.example;
 
 public class Location {
     protected int x;
