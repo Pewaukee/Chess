@@ -10,6 +10,7 @@ public class Piece extends Location {
     protected String filename;
     protected String type;
     protected boolean check;
+    protected boolean hasMoved;
 
     public Piece(int x, int y, String color, String type, String filename) {
         super(x, y);
@@ -18,7 +19,10 @@ public class Piece extends Location {
         this.type = type;
         if (type.equals("king")) { // if king, set the check variable
             this.check = false;
+            this.hasMoved = false;
         }
+        if (type.equals("rook")) {this.hasMoved = false;}
+
         this.filename = filename;
         this.moves = new ArrayList<Location>();
     }
@@ -167,29 +171,25 @@ public class Piece extends Location {
             // up and right
             if (upRight) {
                 location = new Location(x+i, y-i);
-                helper(pieces, location, res, otherColor);
-                if (isOccupied(pieces, location) != null) {upRight = false;}
+                if (!helper(pieces, location, res, otherColor)) {upRight = false;}
             }
 
             // up and left
             if (upLeft) {
                 location = new Location(x-i, y-i);
-                helper(pieces, location, res, otherColor);
-                if (isOccupied(pieces, location) != null) {upLeft = false;}
+                if (!helper(pieces, location, res, otherColor)) {upLeft = false;}
             }
 
             // down and right
             if (downRight) {
                 location = new Location(x+i, y+i);
-                helper(pieces, location, res, otherColor);
-                if (isOccupied(pieces, location) != null) {downRight = false;}
+                if (!helper(pieces, location, res, otherColor)) {downRight = false;}
             }
 
             // down and left
             if (downLeft) {
                 location = new Location(x-i, y+i);
-                helper(pieces, location, res, otherColor);
-                if (isOccupied(pieces, location) != null) {downLeft = false;}
+                if (!helper(pieces, location, res, otherColor)) {downLeft = false;}
             }
         }
 
@@ -210,26 +210,22 @@ public class Piece extends Location {
                 // up
                 if (up) {
                     location = new Location(x, y-i);
-                    helper(pieces, location, res, otherColor);
-                    if (isOccupied(pieces, location) != null) {up = false;}
+                    if (!helper(pieces, location, res, otherColor)) {up = false;}
                 }
                 // down
                 if (down) {
                     location = new Location(x, y+i);
-                    helper(pieces, location, res, otherColor);
-                    if (isOccupied(pieces, location) != null) {down = false;}
+                    if (!helper(pieces, location, res, otherColor)) {down = false;}
                 }
                 // right
                 if (right) {
                     location = new Location(x+i, y);
-                    helper(pieces, location, res, otherColor);
-                    if (isOccupied(pieces, location) != null) {right = false;}
+                    if (!helper(pieces, location, res, otherColor)) {right = false;}
                 }
                 // left
                 if (left) {
                     location = new Location(x-i, y);
-                    helper(pieces, location, res, otherColor);
-                    if (isOccupied(pieces, location) != null) {left = false;}
+                    if (!helper(pieces, location, res, otherColor)) {left = false;}
                 }
             }
             if (lookForCheck) {
@@ -251,28 +247,120 @@ public class Piece extends Location {
     private ArrayList<Location> kingMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
         // king's moves are all the queen's moves, but only for one square
-        //TODO castle
-        queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
-        ArrayList<Location> toRemove = new ArrayList<Location>();
+        //queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
+        /*ArrayList<Location> toRemove = new ArrayList<Location>();
         for (Location location: res) {
             if (distance(location, new Location(this.x, this.y)) >= 1.5) {
                 toRemove.add(location);
             }
         }
-        for (Location loc: toRemove) {res.remove(loc);}
+        for (Location loc: toRemove) {res.remove(loc);}*/
+        Location location;
+        // up
+        location = new Location(x, y-1);
+        helper(pieces, location, res, otherColor);
+
+        // down
+        location = new Location(x, y+1);
+        helper(pieces, location, res, otherColor);
+
+        // right
+        location = new Location(x+1, y);
+        helper(pieces, location, res, otherColor);
+        
+        // left
+        location = new Location(x-1, y);
+        helper(pieces, location, res, otherColor);
+
+        // up right
+        location = new Location(x+1, y-1);
+        helper(pieces, location, res, otherColor);
+
+        // up left
+        location = new Location(x-1, y-1);
+        helper(pieces, location, res, otherColor);
+
+        // down right
+        location = new Location(x+1, y+1);
+        helper(pieces, location, res, otherColor);
+
+        // down left
+        location = new Location(x-1, y+1);
+        helper(pieces, location, res, otherColor);
+
+        if (lookForCheck) {
+            res = findChecks(res, piece, king, pieces, x, y);
+            res = findCastleMoves(pieces, king, res);
+        }
+        
         this.moves = res;
         return res;
     }
 
-    private void helper(ArrayList<Piece> pieces, Location location, ArrayList<Location> res, String otherColor) {
+    private ArrayList<Location> findCastleMoves (ArrayList<Piece> pieces, Piece king, ArrayList<Location> res) {
+        int x = this.x;
+        int y = this.y;
+        if (!king.hasMoved) {
+            boolean kingSideCastle = true;
+            boolean queenSideCastle = true;
+            for (int i = 1; i <= 2; i++) {
+                if (isOccupied(pieces, new Location(x+i, this.y)) == null) {
+                    this.x = x + i; // king side castle
+                    if (inCheck(pieces, king)) {kingSideCastle = false;}
+                } else {kingSideCastle = false;}
+                    
+                if (isOccupied(pieces, new Location(x-i, this.y)) == null) {
+                    this.x = x - i; // queen side castle
+                    if (inCheck(pieces, king)) {queenSideCastle = false;} 
+                } else {queenSideCastle = false;}
+                    
+            }
+            this.x = x;
+            this.y = y;
+            if (this.color.equals("white")) {
+                try {
+                    if (isOccupied(pieces, new Location(7, 7)).hasMoved) {kingSideCastle = false;}
+                } catch (NullPointerException e) {}
+                try {
+                    if (isOccupied(pieces, new Location(0, 7)).hasMoved && isOccupied(pieces, new Location(1, 7)) == null) {
+                        queenSideCastle = false;
+                    }
+                } catch (NullPointerException e) {}
+
+                if (kingSideCastle) {res.add(new Location(6, 7));}
+                if (queenSideCastle) {res.add(new Location(2, 7));}
+            }
+            else { // color = "black"
+                try {
+                    if (isOccupied(pieces, new Location(7, 0)).hasMoved) {kingSideCastle = false;}
+                } catch (NullPointerException e) {}
+                try {
+                    if (isOccupied(pieces, new Location(0, 0)).hasMoved && isOccupied(pieces, new Location(1, 7)) == null) {
+                        queenSideCastle = false;
+                    }
+                } catch (NullPointerException e) {}
+            
+                if (kingSideCastle) {res.add(new Location(6, 0));}
+                if (queenSideCastle) {res.add(new Location(2, 0));}
+            }         
+        }
+        return res;
+    }
+
+    private boolean helper(ArrayList<Piece> pieces, Location location, ArrayList<Location> res, String otherColor) {
         Piece occupiedPiece;
         if (inBounds(location)) {
             occupiedPiece = isOccupied(pieces, location);
-            if (occupiedPiece == null) {res.add(location);}
+            if (occupiedPiece == null) {
+                res.add(location);
+                return true;
+            }
             else if (occupiedPiece.color.equals(otherColor)) {
                 res.add(location);
+                return false;
             }
         }
+        return false;
     }
 
     public Piece isOccupied(ArrayList<Piece> pieces, Location location) {
@@ -290,14 +378,31 @@ public class Piece extends Location {
 
     public ArrayList<Location> findChecks(ArrayList<Location> res, Piece piece, Piece king, ArrayList<Piece> pieces, int x, int y) {
         ArrayList<Location> toRemove = new ArrayList<Location>();
+        
+        //System.out.println(king.color + "LLL");
         for (Location location: res) {
             piece.x = location.x;
             piece.y = location.y;
+            //System.out.println(king.color + " " + king.check);
+            //if (piece.type.equals("bishop")) {
+                //System.out.println("bishop " + piece.x + " " + piece.y);
+            //}
+            //for (Piece piece1: pieces) {
+                //if (piece1 == piece) {
+                    //System.out.println("piece reference seen");
+                    //System.out.println(piece1.x + " " + piece1.y + "\n");
+                //}
+                //if (piece1.type.equals("bishop")){
+                //System.out.println(piece1.type + " " + piece1.x + " " + piece1.y);}
+            //}
             Piece occupiedPiece = isOccupied(pieces, location);
             if (occupiedPiece != null) {
                 occupiedPiece.alive = false;
             }
+            //TODO when looking for checks, cannot block with another piece
+            System.out.println(piece.color + " " + piece.type + " " + piece.x + " " + piece.y);
             if (inCheck(pieces, king)) {
+                System.out.println("HIHIHIHI" + inCheck(pieces, king));
                 toRemove.add(location);
             }
             try {
@@ -311,11 +416,18 @@ public class Piece extends Location {
     }
     public boolean inCheck(ArrayList<Piece> pieces, Piece king) { // see if a move causes check
         String otherColor = king.color.equals("white") ? "black": "white";
+        System.out.println("othercolor=" + otherColor);
+        System.out.println(king.color + " king " + king.x + " " + king.y);
         for (Piece piece: pieces) {
-            if (piece.color.equals(otherColor) && piece.isAlive()) {
-                piece.setMoves(pieces, piece, king, false);
+            if (piece.color.equals(otherColor) && piece.alive) {
+                //System.out.println(piece.color + " " + piece.type);
+                piece.setMoves(pieces, piece, null, false);
                 for (Location location: piece.getMoves()) {
+                    if (piece.type.equals("queen")) {
+                        System.out.println("queen move " + location.x + " " + location.y);
+                    }
                     if (king.x == location.x && king.y == location.y) {
+                        System.out.println("check, by piece" + piece.type + " " + piece.color + " " + piece.x + " " + piece.y + " \n");
                         return true;
                     }
                 }
@@ -324,13 +436,14 @@ public class Piece extends Location {
         return false;
     }
 
+    // not needed?
     public boolean checkStatus(ArrayList<Piece> pieces) {
         /*
          * doing this.check = true and this.check = false did not work,
          * had to set as a boolean returnable function and change the value
          * that doesn't seem to prevent the stalemate bug
          */
-        System.out.println(this.color + " " + this.check);
+        //System.out.println(this.color + " " + this.check);
         String otherColor = this.color.equals("white") ? "black": "white";
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor)) {

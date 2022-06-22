@@ -158,8 +158,9 @@ public class App extends Application {
                 }
                 else {
                     toMove = false;
-                    
+                    System.out.println(curPieceSelected.getMoves().size());
                     for (Location location: curPieceSelected.getMoves()) {
+                        //System.out.println(location.x + " " + location.y);
                         if (location.getX() == x && location.getY() == y) {
                             Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
                             if (occupiedPiece != null) {
@@ -167,9 +168,40 @@ public class App extends Application {
                                 
                                 occupiedPiece.setAlive(false);
                                 pieces.remove(occupiedPiece);
-                            }                            
+                            }
+                            String type = curPieceSelected.type;
+                            if (type.equals("rook") || type.equals("king")) {curPieceSelected.hasMoved = true;}
+                            // move the rook if a castle move is played
+                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == -2) { // king side castle
+                                if (curPieceSelected.color.equals("white")) {
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 7));
+                                    rook.setX(rook.getX()-2);
+                                }
+                                else { // color = "black"
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 0));
+                                    rook.setX(rook.getX()-2);
+                                }
+                            }
+                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == 2) { // queen side castle
+                                if (curPieceSelected.color.equals("white")) {
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 7));
+                                    rook.setX(rook.getX()+3);
+                                }
+                                else { // color = "black"
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 0));
+                                    rook.setX(rook.getX()+3);
+                                }
+                            }
                             curPieceSelected.setX(x);
                             curPieceSelected.setY(y);
+                            if (curPieceSelected.color.equals("white") && curPieceSelected.type.equals("pawn") && curPieceSelected.y == 0) {
+                                curPieceSelected.type = "queen"; 
+                                curPieceSelected.setFileString(whiteQueenFileStr);
+                            }
+                            if (curPieceSelected.color.equals("black") && curPieceSelected.type.equals("pawn") && curPieceSelected.y == 7) {
+                                curPieceSelected.type = "queen"; 
+                                curPieceSelected.setFileString(blackQueenFileStr);
+                            }
                             try {
                                 pieceGroup.getChildren().clear();
                                 drawBoard();
@@ -177,15 +209,17 @@ public class App extends Application {
                                 // if turn is white, then turn is black and vice versa
                                 turn = turn.equals("white") ? "black": "white";
                                 king = turn.equals("white") ? whiteKing: blackKing;
-                                king.check = king.checkStatus(pieces); // determine if the king is in check
-                                System.out.println(king.check + "\n");
-                                if (king.checkMate(pieces, turn)) {
-                                    String otherColor = turn.equals("white") ? "black": "white";
-                                    System.out.println("checkmate for " + otherColor);
-                                }
-                                if (king.staleMate(pieces, turn)) {
-                                    System.out.println("stalemate");
-                                }
+                                System.out.println("Checking");
+                                king.check = king.inCheck(pieces, king); // determine if the king is in check
+                                System.out.println(king.color + " " + king.check + "\n\n");
+                                //TODO reactivate these
+                                //if (king.checkMate(pieces, turn)) {
+                                    //String otherColor = turn.equals("white") ? "black": "white";
+                                    //System.out.println("checkmate for " + otherColor);
+                                //}
+                                //if (king.staleMate(pieces, turn)) {
+                                    //System.out.println("stalemate");
+                                //}
                             } catch (FileNotFoundException e) {e.printStackTrace(); System.out.println("paths are likely wrong");}
                         }
                     }
