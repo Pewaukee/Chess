@@ -157,8 +157,7 @@ public class App extends Application {
                         System.out.println(location.x + " " + location.y);
                         if (location.getX() == x && location.getY() == y) {
                             
-                            Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
-                            
+                            Piece occupiedPiece = p.isOccupied(pieces, new Location(x, y));
                             // if a piece is took
                             if (occupiedPiece != null) {pieces.remove(occupiedPiece);}
 
@@ -177,18 +176,34 @@ public class App extends Application {
                                     rookToTransfer.x = x + 1;
                                 }
                             }
-                            // TODO en passant, can take but the piece disappears
+                            // TODO en passant, can take but the wrong piece disappears
 
                             // en passant check
+                            if (enPassant == x) {
+                                Location location1 = new Location(x, y);
+                                Location location2 = new Location(curPieceSelected.x, curPieceSelected.y);
+                                double distance = location1.distance(location1, location2);
+                                System.out.println(distance);
+                                if (distance > 1.0 && distance < 2.0) { // checks for a diagonal move
+                                    Piece enPassantPiece = p.isOccupied(pieces, new Location(enPassant, 3));
+                                    if (enPassantPiece.type.equals("pawn"))  {
+                                        pieces.remove(enPassantPiece);
+                                    }
+                                }
+                                enPassant = -1;
+                            }
+                            
                             if (curPieceSelected.type.equals("pawn")) {
                                 if (curPieceSelected.y - y == 2) {
                                     enPassant = curPieceSelected.x;
+                                    // must flip the en passant column value for the next turn only
                                     int xDifference = Math.abs(3 - enPassant);
                                     if (enPassant <= 3) {enPassant = 4 + xDifference;}
                                     else {enPassant = 4 - xDifference;}
                                 }
                             } else {enPassant = -1;}
 
+                            // move the piece to its new location
                             curPieceSelected.setX(x);
                             curPieceSelected.setY(y);
 
@@ -230,10 +245,7 @@ public class App extends Application {
                 curPieceSelected = piece;
                 curPieceSelected.setMoves(pieces, curPieceSelected, king, true);
                 if (curPieceSelected.type.equals("pawn") && enPassant != -1 && curPieceSelected.y == 3) {
-                    // TODO this can be reached
-                    System.out.println("HU" + enPassant + " " + String.valueOf(y-1));
-                    curPieceSelected.addMove(pieces, king, new Location(enPassant, y-1));
-                    enPassant = -1;
+                    curPieceSelected.addMove(pieces, king, new Location(enPassant, 2));
                 }
                 return true;
             }

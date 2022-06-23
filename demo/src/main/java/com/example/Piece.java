@@ -42,11 +42,16 @@ public class Piece extends Location {
     public ArrayList<Location> getMoves() {return moves;}
 
     public void addMove(ArrayList<Piece> pieces, Piece king, Location location) { // only for special en passant move
+        int x = this.x;
+        int y = this.y;
         this.x = location.x;
         this.y = location.y;
         if (!inCheck(pieces, king)) {
             this.moves.add(location);
         }
+        this.x = x;
+        this.y = y;
+
     }
 
     private void setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck, boolean flipped) {
