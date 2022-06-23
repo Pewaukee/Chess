@@ -17,6 +17,8 @@ public class Piece extends Location {
         this.color = color;
         this.alive = true;
         this.type = type;
+
+        // the hasMoved variable is for castling
         if (type.equals("king")) { // if king, set the check variable
             this.check = false;
             this.hasMoved = false;
@@ -37,15 +39,24 @@ public class Piece extends Location {
 
     public String getType() {return type;}
 
-    // these are just placement functions to be overwritten in subclasses
     public ArrayList<Location> getMoves() {return moves;}
+
+    public void addMove(ArrayList<Piece> pieces, Piece king, Location location) { // only for special en passant move
+        this.x = location.x;
+        this.y = location.y;
+        if (!inCheck(pieces, king)) {
+            this.moves.add(location);
+        }
+    }
+
+    private void setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck, boolean flipped) {
+        ArrayList<Location> res = new ArrayList<Location>();
+        String otherColor = piece.color.equals("white") ? "black": "white";
+        setFlippedPawnMoves(pieces, res, otherColor);
+    }
     public void setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck) {
         ArrayList<Location> res = new ArrayList<Location>();
-        int x = this.x;
-        int y = this.y;
-        
         String otherColor = piece.color.equals("white") ? "black": "white";
-        
         switch (piece.type) {
             case "pawn": // set pawn moves
                 pawnMoves(pieces, piece, king, lookForCheck, res, otherColor);
@@ -53,16 +64,16 @@ public class Piece extends Location {
             case "knight": // set knight moves
                 knightMoves(pieces, piece, king, lookForCheck, res, otherColor);
                 break;
-            case "bishop":
+            case "bishop": // set bishop moves
                 bishopMoves(pieces, piece, king, lookForCheck, res, otherColor);
                 break;
-            case "rook":
+            case "rook": // set rook moves
                 rookMoves(pieces, piece, king, lookForCheck, res, otherColor);
                 break;
-            case "queen":
+            case "queen": // set queen moves
                 queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
                 break;
-            case "king":
+            case "king": // set king moves
                 kingMoves(pieces, piece, king, lookForCheck, res, otherColor);
                 break;
             default:
@@ -71,51 +82,39 @@ public class Piece extends Location {
         }
     }
 
+    private ArrayList<Location> setFlippedPawnMoves(ArrayList<Piece> pieces, ArrayList<Location> res, String otherColor) {
+        //check diagonal takes when the board is flipped
+        Location downRight = new Location(x+1, y+1);
+        if (isOccupied(pieces, downRight) != null) {helper(pieces, downRight, res, otherColor);}
+        Location downLeft = new Location(x-1, y+1);
+        if (isOccupied(pieces, downLeft) != null) {helper(pieces, downLeft, res, otherColor);}
+        this.moves = res;
+        return res;
+    }
+
     private ArrayList<Location> pawnMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck,  
         ArrayList<Location> res, String otherColor) {
-        // TODO en passant, promotion
-        switch (piece.color) {
-            case "white":
-                //up 1 and not at the end of the board
-                Location upOne = new Location(x, y-1);
-                if (y > 0 && isOccupied(pieces, upOne) == null) {
-                    res.add(upOne);
-                    //up 2 and at starting position
-                    Location upTwo = new Location(x, y-2); // can only move 2 up if can move one up
-                    if (y == 6 && isOccupied(pieces, upTwo) == null) {res.add(upTwo);}
-                }
-                //check diagonals
-                Location upRight = new Location(x+1, y-1);
-                if (isOccupied(pieces, upRight) != null) {helper(pieces, upRight, res, otherColor);}
-                Location upLeft = new Location(x-1, y-1);
-                if (isOccupied(pieces, upLeft) != null) {helper(pieces, upLeft, res, otherColor);}
-                break;
-            case "black":
-                // up 1 and not at end of the board
-                Location downOne = new Location(x, y+1);
-                if (y < 7 && isOccupied(pieces, downOne) == null) {
-                    res.add(downOne);
-                    // up 2 and at starting position
-                    Location downTwo = new Location(x, y+2); // can only move down two if can move down one
-                    if (y == 1 && isOccupied(pieces, downTwo) == null) {res.add(downTwo);}
-                }
 
-                //check diagonals
-                Location downRight = new Location(x+1, y+1);
-                if (isOccupied(pieces, downRight) != null) {helper(pieces, downRight, res, otherColor);}
-                Location downLeft = new Location(x-1, y+1);
-                if (isOccupied(pieces, downLeft) != null) {helper(pieces, downLeft, res, otherColor);}
-                break;
-            default:
-                System.out.println("this shouldn't ever happen");
-                break;
-        
+        //up 1
+        Location upOne = new Location(x, y-1);
+        if (y > 0 && isOccupied(pieces, upOne) == null) {
+            res.add(upOne);
+            //up 2 and at starting position
+            Location upTwo = new Location(x, y-2); // can only move 2 up if can move one up
+            if (y == 6 && isOccupied(pieces, upTwo) == null) {res.add(upTwo);}
         }
+        //check diagonals
+        Location upRight = new Location(x+1, y-1);
+        if (isOccupied(pieces, upRight) != null) {helper(pieces, upRight, res, otherColor);}
+        Location upLeft = new Location(x-1, y-1);
+        if (isOccupied(pieces, upLeft) != null) {helper(pieces, upLeft, res, otherColor);}
+        
         if (lookForCheck) {
             res = findChecks(res, piece, king, pieces, x, y);
         }
         this.moves = res;
-        return res;
+        return res;  
+        
     }
 
     private ArrayList<Location> knightMoves(ArrayList<Piece> pieces, Piece piece, Piece king,
@@ -247,47 +246,16 @@ public class Piece extends Location {
     private ArrayList<Location> kingMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
         // king's moves are all the queen's moves, but only for one square
-        //queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
-        /*ArrayList<Location> toRemove = new ArrayList<Location>();
+        
+        queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
+        ArrayList<Location> toRemove = new ArrayList<Location>();
         for (Location location: res) {
             if (distance(location, new Location(this.x, this.y)) >= 1.5) {
                 toRemove.add(location);
             }
         }
-        for (Location loc: toRemove) {res.remove(loc);}*/
-        Location location;
-        // up
-        location = new Location(x, y-1);
-        helper(pieces, location, res, otherColor);
-
-        // down
-        location = new Location(x, y+1);
-        helper(pieces, location, res, otherColor);
-
-        // right
-        location = new Location(x+1, y);
-        helper(pieces, location, res, otherColor);
+        for (Location loc: toRemove) {res.remove(loc);}
         
-        // left
-        location = new Location(x-1, y);
-        helper(pieces, location, res, otherColor);
-
-        // up right
-        location = new Location(x+1, y-1);
-        helper(pieces, location, res, otherColor);
-
-        // up left
-        location = new Location(x-1, y-1);
-        helper(pieces, location, res, otherColor);
-
-        // down right
-        location = new Location(x+1, y+1);
-        helper(pieces, location, res, otherColor);
-
-        // down left
-        location = new Location(x-1, y+1);
-        helper(pieces, location, res, otherColor);
-
         if (lookForCheck) {
             res = findChecks(res, piece, king, pieces, x, y);
             res = findCastleMoves(pieces, king, res);
@@ -301,48 +269,51 @@ public class Piece extends Location {
         int x = this.x;
         int y = this.y;
         if (!king.hasMoved) {
-            boolean kingSideCastle = true;
-            boolean queenSideCastle = true;
+            // because of App.flipBoard(), this changes to right and left instead of king and queen side
+            boolean rightSideCastle = true;
+            boolean leftSideCastle = true;
             for (int i = 1; i <= 2; i++) {
                 if (isOccupied(pieces, new Location(x+i, this.y)) == null) {
                     this.x = x + i; // king side castle
-                    if (inCheck(pieces, king)) {kingSideCastle = false;}
-                } else {kingSideCastle = false;}
+                    if (inCheck(pieces, king)) {rightSideCastle = false;}
+                } else {rightSideCastle = false;}
                     
                 if (isOccupied(pieces, new Location(x-i, this.y)) == null) {
                     this.x = x - i; // queen side castle
-                    if (inCheck(pieces, king)) {queenSideCastle = false;} 
-                } else {queenSideCastle = false;}
+                    if (inCheck(pieces, king)) {leftSideCastle = false;} 
+                } else {leftSideCastle = false;}
                     
             }
+            /*
+             * for queen side castling, need to make sure 
+             * there is another empty space that is vacant, 
+             * so check both sides and see if there is a piece
+             * that is not a rook and also hasn't moved
+             */
+            
+            // checking right
+            try {
+                Piece rightPiece = isOccupied(pieces, new Location(this.x + 1, y));
+                // if the piece is not a rook and has not moved
+                if (!(rightPiece.type.equals("rook") && !rightPiece.hasMoved)) {rightSideCastle = false;}
+            } catch (NullPointerException e) {}
+
+            // checking left
+            try {
+                Piece leftPiece = isOccupied(pieces, new Location(this.x - 1, y));
+                // if the left piece is not a rook and has not moved
+                if (!(leftPiece.type.equals("rook") && !leftPiece.hasMoved)) {leftSideCastle = false;}
+            } catch (NullPointerException e) {}
+            
             this.x = x;
             this.y = y;
-            if (this.color.equals("white")) {
-                try {
-                    if (isOccupied(pieces, new Location(7, 7)).hasMoved) {kingSideCastle = false;}
-                } catch (NullPointerException e) {}
-                try {
-                    if (isOccupied(pieces, new Location(0, 7)).hasMoved && isOccupied(pieces, new Location(1, 7)) == null) {
-                        queenSideCastle = false;
-                    }
-                } catch (NullPointerException e) {}
-
-                if (kingSideCastle) {res.add(new Location(6, 7));}
-                if (queenSideCastle) {res.add(new Location(2, 7));}
-            }
-            else { // color = "black"
-                try {
-                    if (isOccupied(pieces, new Location(7, 0)).hasMoved) {kingSideCastle = false;}
-                } catch (NullPointerException e) {}
-                try {
-                    if (isOccupied(pieces, new Location(0, 0)).hasMoved && isOccupied(pieces, new Location(1, 7)) == null) {
-                        queenSideCastle = false;
-                    }
-                } catch (NullPointerException e) {}
             
-                if (kingSideCastle) {res.add(new Location(6, 0));}
-                if (queenSideCastle) {res.add(new Location(2, 0));}
-            }         
+            // set the new moves
+
+            if (rightSideCastle) {res.add(new Location(this.x + 2, y));}
+            if (leftSideCastle) {res.add(new Location(this.x - 2, y));}
+            
+                  
         }
         return res;
     }
@@ -379,30 +350,18 @@ public class Piece extends Location {
     public ArrayList<Location> findChecks(ArrayList<Location> res, Piece piece, Piece king, ArrayList<Piece> pieces, int x, int y) {
         ArrayList<Location> toRemove = new ArrayList<Location>();
         
-        //System.out.println(king.color + "LLL");
         for (Location location: res) {
-            piece.x = location.x;
-            piece.y = location.y;
-            //System.out.println(king.color + " " + king.check);
-            //if (piece.type.equals("bishop")) {
-                //System.out.println("bishop " + piece.x + " " + piece.y);
-            //}
-            //for (Piece piece1: pieces) {
-                //if (piece1 == piece) {
-                    //System.out.println("piece reference seen");
-                    //System.out.println(piece1.x + " " + piece1.y + "\n");
-                //}
-                //if (piece1.type.equals("bishop")){
-                //System.out.println(piece1.type + " " + piece1.x + " " + piece1.y);}
-            //}
             Piece occupiedPiece = isOccupied(pieces, location);
+            
             if (occupiedPiece != null) {
+                System.out.println(occupiedPiece.color + " " + occupiedPiece.type + " " + occupiedPiece.x + " " + occupiedPiece.y);
                 occupiedPiece.alive = false;
             }
-            //TODO when looking for checks, cannot block with another piece
-            System.out.println(piece.color + " " + piece.type + " " + piece.x + " " + piece.y);
+
+            piece.x = location.x;
+            piece.y = location.y;
+            
             if (inCheck(pieces, king)) {
-                System.out.println("HIHIHIHI" + inCheck(pieces, king));
                 toRemove.add(location);
             }
             try {
@@ -414,42 +373,15 @@ public class Piece extends Location {
         piece.y = y;
         return res;
     }
+    
     public boolean inCheck(ArrayList<Piece> pieces, Piece king) { // see if a move causes check
         String otherColor = king.color.equals("white") ? "black": "white";
-        System.out.println("othercolor=" + otherColor);
-        System.out.println(king.color + " king " + king.x + " " + king.y);
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor) && piece.alive) {
-                //System.out.println(piece.color + " " + piece.type);
-                piece.setMoves(pieces, piece, null, false);
+                if (piece.type.equals("pawn")) {piece.setMoves(pieces, piece, null, false, true);}
+                else {piece.setMoves(pieces, piece, null, false);}
                 for (Location location: piece.getMoves()) {
-                    if (piece.type.equals("queen")) {
-                        System.out.println("queen move " + location.x + " " + location.y);
-                    }
                     if (king.x == location.x && king.y == location.y) {
-                        System.out.println("check, by piece" + piece.type + " " + piece.color + " " + piece.x + " " + piece.y + " \n");
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    // not needed?
-    public boolean checkStatus(ArrayList<Piece> pieces) {
-        /*
-         * doing this.check = true and this.check = false did not work,
-         * had to set as a boolean returnable function and change the value
-         * that doesn't seem to prevent the stalemate bug
-         */
-        //System.out.println(this.color + " " + this.check);
-        String otherColor = this.color.equals("white") ? "black": "white";
-        for (Piece piece: pieces) {
-            if (piece.color.equals(otherColor)) {
-                piece.setMoves(pieces, piece, this, false);
-                for (Location move: piece.getMoves()) {
-                    if (this.x == move.x && this.y == move.y) {
                         return true;
                     }
                 }

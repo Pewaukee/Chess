@@ -45,6 +45,8 @@ public class App extends Application {
     private static String turn;
     private static boolean toMove;
     private static Piece curPieceSelected;
+    private static Piece p = new Piece(-1, -1, "n/a", "placement", "filename");
+    private static int enPassant = -1;
     
     private static String whiteRookFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\whiteRook.png";
     private static String blackRookFileStr = "demo\\src\\main\\resources\\com\\example\\PiecePics\\blackRook.png";
@@ -79,7 +81,7 @@ public class App extends Application {
                 r.setHeight(100);
                 
                 if (count % 2 == 0) r.setFill(Color.WHITE);
-                else r.setFill(Color.GREY);
+                else r.setFill(Color.rgb(51, 153, 175)); // 8 bit numbers for a light blue
                 gridGroup.getChildren().add(r);
                 count++;
             }
@@ -146,88 +148,109 @@ public class App extends Application {
                 y = square[1];
                 king = turn.equals("white") ? whiteKing: blackKing;
                 if (!toMove) {
-                    for (Piece piece: pieces) {
-                        if (piece.getX() == x && piece.getY() == y && piece.getColor().equals(turn)) {
-                            curPieceSelected = piece;
-                            toMove = true;
-                        }
-                    } 
-                    try {
-                        curPieceSelected.setMoves(pieces, curPieceSelected, king, true);
-                    } catch (NullPointerException e) {} // if selected a piece with opposite color as turn
+                    toMove = setPiece(x, y, toMove);
                 }
                 else {
                     toMove = false;
                     System.out.println(curPieceSelected.getMoves().size());
                     for (Location location: curPieceSelected.getMoves()) {
-                        //System.out.println(location.x + " " + location.y);
+                        System.out.println(location.x + " " + location.y);
                         if (location.getX() == x && location.getY() == y) {
+                            
                             Piece occupiedPiece = curPieceSelected.isOccupied(pieces, new Location(x, y));
-                            if (occupiedPiece != null) {
-                                // if a piece is took
-                                
-                                occupiedPiece.setAlive(false);
-                                pieces.remove(occupiedPiece);
-                            }
+                            
+                            // if a piece is took
+                            if (occupiedPiece != null) {pieces.remove(occupiedPiece);}
+
                             String type = curPieceSelected.type;
                             if (type.equals("rook") || type.equals("king")) {curPieceSelected.hasMoved = true;}
-                            // move the rook if a castle move is played
-                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == -2) { // king side castle
-                                if (curPieceSelected.color.equals("white")) {
-                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 7));
-                                    rook.setX(rook.getX()-2);
+                            
+                            // if the king castled, move the rook as accordingly
+                            if (curPieceSelected.type.equals("king")) {
+                                Piece rookToTransfer;
+                                if (curPieceSelected.x - x == -2) { // right side castle
+                                    rookToTransfer = curPieceSelected.isOccupied(pieces, new Location(7, 7));
+                                    rookToTransfer.x = x - 1;
                                 }
-                                else { // color = "black"
-                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 0));
-                                    rook.setX(rook.getX()-2);
-                                }
-                            }
-                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == 2) { // queen side castle
-                                if (curPieceSelected.color.equals("white")) {
-                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 7));
-                                    rook.setX(rook.getX()+3);
-                                }
-                                else { // color = "black"
-                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 0));
-                                    rook.setX(rook.getX()+3);
+                                if (curPieceSelected.x - x == 2) { // left side castle
+                                    rookToTransfer = curPieceSelected.isOccupied(pieces, new Location(0, 7));
+                                    rookToTransfer.x = x + 1;
                                 }
                             }
+                            // TODO en passant, can take but the piece disappears
+
+                            // en passant check
+                            if (curPieceSelected.type.equals("pawn")) {
+                                if (curPieceSelected.y - y == 2) {
+                                    enPassant = curPieceSelected.x;
+                                    int xDifference = Math.abs(3 - enPassant);
+                                    if (enPassant <= 3) {enPassant = 4 + xDifference;}
+                                    else {enPassant = 4 - xDifference;}
+                                }
+                            } else {enPassant = -1;}
+
                             curPieceSelected.setX(x);
                             curPieceSelected.setY(y);
-                            if (curPieceSelected.color.equals("white") && curPieceSelected.type.equals("pawn") && curPieceSelected.y == 0) {
+
+                            if (curPieceSelected.type.equals("pawn") && curPieceSelected.y == 0) {
                                 curPieceSelected.type = "queen"; 
-                                curPieceSelected.setFileString(whiteQueenFileStr);
-                            }
-                            if (curPieceSelected.color.equals("black") && curPieceSelected.type.equals("pawn") && curPieceSelected.y == 7) {
-                                curPieceSelected.type = "queen"; 
-                                curPieceSelected.setFileString(blackQueenFileStr);
+                                if (curPieceSelected.color.equals("white")) {curPieceSelected.setFileString(whiteQueenFileStr);}
+                                else {curPieceSelected.setFileString(blackQueenFileStr);}
                             }
                             try {
                                 pieceGroup.getChildren().clear();
-                                drawBoard();
                                 
                                 // if turn is white, then turn is black and vice versa
                                 turn = turn.equals("white") ? "black": "white";
                                 king = turn.equals("white") ? whiteKing: blackKing;
-                                System.out.println("Checking");
+
                                 king.check = king.inCheck(pieces, king); // determine if the king is in check
-                                System.out.println(king.color + " " + king.check + "\n\n");
-                                //TODO reactivate these
-                                //if (king.checkMate(pieces, turn)) {
-                                    //String otherColor = turn.equals("white") ? "black": "white";
-                                    //System.out.println("checkmate for " + otherColor);
-                                //}
-                                //if (king.staleMate(pieces, turn)) {
-                                    //System.out.println("stalemate");
-                                //}
+                                if (king.checkMate(pieces, turn)) {
+                                    String otherColor = turn.equals("white") ? "black": "white";
+                                    System.out.println("checkmate for " + otherColor);
+                                }
+                                if (king.staleMate(pieces, turn)) {
+                                    System.out.println("stalemate");
+                                }
+                                flipBoard();
+                                drawBoard();
                             } catch (FileNotFoundException e) {e.printStackTrace(); System.out.println("paths are likely wrong");}
                         }
+                        toMove = setPiece(x, y, toMove); // see if user selected another piece of same color to move
                     }
                 }
             }
         });
     }
 
+    private boolean setPiece(int x, int y, boolean toMove) {
+        try {
+            Piece piece = p.isOccupied(pieces, new Location(x, y));
+            if (piece.color.equals(turn)) {
+                curPieceSelected = piece;
+                curPieceSelected.setMoves(pieces, curPieceSelected, king, true);
+                if (curPieceSelected.type.equals("pawn") && enPassant != -1 && curPieceSelected.y == 3) {
+                    // TODO this can be reached
+                    System.out.println("HU" + enPassant + " " + String.valueOf(y-1));
+                    curPieceSelected.addMove(pieces, king, new Location(enPassant, y-1));
+                    enPassant = -1;
+                }
+                return true;
+            }
+        } catch (NullPointerException e) {}
+        return false;
+    }
+
+    private void flipBoard() {
+        for (Piece piece: pieces) {
+            int xDifference = Math.abs(3 - piece.x);
+            if (piece.x <= 3) {piece.x = 4 + xDifference;}
+            else {piece.x = 4 - xDifference;}
+            int yDifference = Math.abs(3 - piece.y);
+            if (piece.y <= 3) {piece.y = 4 + yDifference;}
+            else {piece.y = 4 - yDifference;}
+        }
+    }
 
     private int[] findSquare(int x, int y) { // returns the square coordinates given the clicked mouse coords
         int[] res = new int[2];
@@ -319,8 +342,59 @@ public class App extends Application {
             this.x = x;
             this.y = y;
  * 
+ * extra code for pawn.setMoves()
+ * case "black":
+                // up 1 and not at end of the board
+                Location downOne = new Location(x, y+1);
+                if (y < 7 && isOccupied(pieces, downOne) == null) {
+                    res.add(downOne);
+                    // up 2 and at starting position
+                    Location downTwo = new Location(x, y+2); // can only move down two if can move down one
+                    if (y == 1 && isOccupied(pieces, downTwo) == null) {res.add(downTwo);}
+                }
+
+                //check diagonals
+                Location downRight = new Location(x+1, y+1);
+                if (isOccupied(pieces, downRight) != null) {helper(pieces, downRight, res, otherColor);}
+                Location downLeft = new Location(x-1, y+1);
+                if (isOccupied(pieces, downLeft) != null) {helper(pieces, downLeft, res, otherColor);}
+                break;
+ * 
+ * extra code for castling without flipBoard()
+ * 
+ * for castling with white always at the bottom of the screen
+ * try {
+                if (isOccupied(pieces, new Location(7, 7)).hasMoved) {kingSideCastle = false;}
+            } catch (NullPointerException e) {}
+            try {
+                if (isOccupied(pieces, new Location(0, 7)).hasMoved && isOccupied(pieces, new Location(1, 7)) == null) {
+                    queenSideCastle = false;
+                }
+            } catch (NullPointerException e) {}
  * 
  * 
+ * extra code for moving a rook when castling
+ * // move the rook if a castle move is played
+                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == -2) { // king side castle
+                                if (curPieceSelected.color.equals("white")) {
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 7));
+                                    rook.setX(rook.getX()-2);
+                                }
+                                else { // color = "black"
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(7, 0));
+                                    rook.setX(rook.getX()-2);
+                                }
+                            }
+                            if (curPieceSelected.type.equals("king") && curPieceSelected.x - x == 2) { // queen side castle
+                                if (curPieceSelected.color.equals("white")) {
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 7));
+                                    rook.setX(rook.getX()+3);
+                                }
+                                else { // color = "black"
+                                    Piece rook = curPieceSelected.isOccupied(pieces, new Location(0, 0));
+                                    rook.setX(rook.getX()+3);
+                                }
+                            }
  */
 
 
