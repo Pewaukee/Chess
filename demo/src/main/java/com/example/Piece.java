@@ -420,7 +420,6 @@ public class Piece extends Location {
             Piece occupiedPiece = isOccupied(pieces, location);
             
             if (occupiedPiece != null) {
-                System.out.println(occupiedPiece.color + " " + occupiedPiece.type + " " + occupiedPiece.x + " " + occupiedPiece.y);
                 occupiedPiece.alive = false;
             }
 
