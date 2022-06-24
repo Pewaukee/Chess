@@ -1,9 +1,16 @@
 package com.example;
 
+// used for evaulating ArrayList<Piece> pieces
 import java.util.ArrayList;
 
 public class Piece extends Location {
 
+    /*
+     * some of these variables are not needed
+     * by certain pieces, so have to be careful 
+     * in calling, don't want to call .check
+     * for a pawn piece, and so on
+     */
     protected boolean alive;
     protected String color;
     protected ArrayList<Location> moves;
@@ -13,22 +20,27 @@ public class Piece extends Location {
     protected boolean hasMoved;
 
     public Piece(int x, int y, String color, String type, String filename) {
-        super(x, y);
+        super(x, y); // to set the location attributes
         this.color = color;
         this.alive = true;
         this.type = type;
 
         // the hasMoved variable is for castling
-        if (type.equals("king")) { // if king, set the check variable
+        if (type.equals("king")) { // if king, set the check and hasMoved variable
             this.check = false;
             this.hasMoved = false;
         }
-        if (type.equals("rook")) {this.hasMoved = false;}
+        if (type.equals("rook")) {this.hasMoved = false;} // if rook, set the hasMoved var
 
         this.filename = filename;
         this.moves = new ArrayList<Location>();
     }
 
+    /* getter and setter methods
+     * some setter methods are left out for 
+     * the reason that an object's color should
+     * never change
+     */
     public String getColor() {return color;}
 
     public String getFileString() {return this.filename;}
@@ -38,10 +50,12 @@ public class Piece extends Location {
     public void setAlive(boolean alive) {this.alive = alive;}
 
     public String getType() {return type;}
+    public void setType(String type) {this.type = type;}
 
     public ArrayList<Location> getMoves() {return moves;}
 
-    public void addMove(ArrayList<Piece> pieces, Piece king, Location location) { // only for special en passant move
+    public void addMove(ArrayList<Piece> pieces, Piece king, Location location) { 
+        // only for special en passant move
         int x = this.x;
         int y = this.y;
         this.x = location.x;
@@ -54,12 +68,34 @@ public class Piece extends Location {
 
     }
 
-    private void setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck, boolean flipped) {
+    private ArrayList<Location> setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck, boolean flipped) {
+        /* purpose
+         * this special function with a difference
+         * is required for when checking if a move
+         * is possible, all moves are set, but if the 
+         * type is pawn, when the board is flipped the piece is 
+         * attacking downward, so just need to check its 
+         * diagonols to see if it is attacking the king
+         */
         ArrayList<Location> res = new ArrayList<Location>();
         String otherColor = piece.color.equals("white") ? "black": "white";
-        setFlippedPawnMoves(pieces, res, otherColor);
+        Location downRight = new Location(x+1, y+1);
+        if (isOccupied(pieces, downRight) != null) {helper(pieces, downRight, res, otherColor);}
+        Location downLeft = new Location(x-1, y+1);
+        if (isOccupied(pieces, downLeft) != null) {helper(pieces, downLeft, res, otherColor);}
+        this.moves = res;
+        return res;
     }
+
     public void setMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck) {
+        /* purpose
+         * through a switch statement
+         * find the correspoding moves 
+         * for a selected piece
+         * the findChecks() method in most
+         * of these functions below look for pins
+         * for a selected piece
+         */
         ArrayList<Location> res = new ArrayList<Location>();
         String otherColor = piece.color.equals("white") ? "black": "white";
         switch (piece.type) {
@@ -87,19 +123,14 @@ public class Piece extends Location {
         }
     }
 
-    private ArrayList<Location> setFlippedPawnMoves(ArrayList<Piece> pieces, ArrayList<Location> res, String otherColor) {
-        //check diagonal takes when the board is flipped
-        Location downRight = new Location(x+1, y+1);
-        if (isOccupied(pieces, downRight) != null) {helper(pieces, downRight, res, otherColor);}
-        Location downLeft = new Location(x-1, y+1);
-        if (isOccupied(pieces, downLeft) != null) {helper(pieces, downLeft, res, otherColor);}
-        this.moves = res;
-        return res;
-    }
-
     private ArrayList<Location> pawnMoves(ArrayList<Piece> pieces, Piece piece, Piece king, boolean lookForCheck,  
         ArrayList<Location> res, String otherColor) {
-
+        /* purpose
+         * find all available pawn moves
+         * this is a lot easier when the board flips
+         * because the pawn only goes up
+         * regardless of color
+         */
         //up 1
         Location upOne = new Location(x, y-1);
         if (y > 0 && isOccupied(pieces, upOne) == null) {
@@ -124,6 +155,12 @@ public class Piece extends Location {
 
     private ArrayList<Location> knightMoves(ArrayList<Piece> pieces, Piece piece, Piece king,
      boolean lookForCheck, ArrayList<Location> res, String otherColor) {
+        /* purpose
+         * find all the knight moves
+         * for any position, so long as the
+         * knight is in bounds after the move, there
+         * are 8 possible moves
+         */
         Location location;
 
         // up 1, left 2
@@ -167,6 +204,12 @@ public class Piece extends Location {
 
     private ArrayList<Location> bishopMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
+        /* purpose
+         * the bishop moves on the diagonol, so move
+         * the bishop on the four diagonols until it goes
+         * out of bounds, reaches a piece of its own color,
+         * or of another color
+         */
         boolean upRight, upLeft, downRight, downLeft;
         upRight = upLeft = downRight = downLeft = true;
         Location location;
@@ -207,6 +250,11 @@ public class Piece extends Location {
 
     private ArrayList<Location> rookMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
+            /* purpose
+             * find the moves of the rook, which travels
+             * on the non-diagonols, until it goes out of bounds,
+             * or interacts with another piece
+             */
             Location location;
             boolean up, down, left, right;
             up = down = left = right = true;
@@ -251,7 +299,7 @@ public class Piece extends Location {
     private ArrayList<Location> kingMoves(ArrayList<Piece> pieces, Piece piece, Piece king, 
         boolean lookForCheck, ArrayList<Location> res, String otherColor) {
         // king's moves are all the queen's moves, but only for one square
-        
+        // also want to find if the king can castle or not, then add the moves accordingly
         queenMoves(pieces, piece, king, lookForCheck, res, otherColor);
         ArrayList<Location> toRemove = new ArrayList<Location>();
         for (Location location: res) {
@@ -271,6 +319,12 @@ public class Piece extends Location {
     }
 
     private ArrayList<Location> findCastleMoves (ArrayList<Piece> pieces, Piece king, ArrayList<Location> res) {
+        /* purpose
+         * figure out if the king can
+         * castle, either queen or king side
+         * 
+         * flipping the board makes this so much easier
+         */
         int x = this.x;
         int y = this.y;
         if (!king.hasMoved) {
@@ -312,18 +366,20 @@ public class Piece extends Location {
             
             this.x = x;
             this.y = y;
-            
-            // set the new moves
 
+            // set the new moves
             if (rightSideCastle) {res.add(new Location(this.x + 2, y));}
-            if (leftSideCastle) {res.add(new Location(this.x - 2, y));}
-            
-                  
+            if (leftSideCastle) {res.add(new Location(this.x - 2, y));}  
         }
         return res;
     }
 
     private boolean helper(ArrayList<Piece> pieces, Location location, ArrayList<Location> res, String otherColor) {
+        /* purpose
+         * a simple helper function to see
+         * if a corresponding move of a piece
+         * given a new location is valid or not
+         */
         Piece occupiedPiece;
         if (inBounds(location)) {
             occupiedPiece = isOccupied(pieces, location);
@@ -353,6 +409,11 @@ public class Piece extends Location {
     }
 
     public ArrayList<Location> findChecks(ArrayList<Location> res, Piece piece, Piece king, ArrayList<Piece> pieces, int x, int y) {
+        /* purpose
+         * for all the possible moves of the king,
+         * look if there is a check, and if so, remove
+         * that location from the list of possible moves
+         */
         ArrayList<Location> toRemove = new ArrayList<Location>();
         
         for (Location location: res) {
@@ -379,7 +440,12 @@ public class Piece extends Location {
         return res;
     }
     
-    public boolean inCheck(ArrayList<Piece> pieces, Piece king) { // see if a move causes check
+    public boolean inCheck(ArrayList<Piece> pieces, Piece king) {
+        /* purpose
+         * see if a move causes check, 
+         * do this by seeing all the opponents move
+         * for all pieces
+         */
         String otherColor = king.color.equals("white") ? "black": "white";
         for (Piece piece: pieces) {
             if (piece.color.equals(otherColor) && piece.alive) {
@@ -396,6 +462,11 @@ public class Piece extends Location {
     }
     
     public boolean checkMate(ArrayList<Piece> pieces, String turn) {
+        /* purpose
+         * for any given turn, if there are no more turns for all
+         * of the pieces, and the king is in check, then it is
+         * checkmate, and the opponent wins
+         */
         int counter = 0;
         for (Piece piece: pieces) {
             if (piece.color.equals(turn)) {
@@ -410,6 +481,11 @@ public class Piece extends Location {
     }
 
     public boolean staleMate(ArrayList<Piece> pieces, String turn) {
+        /* purpose
+         * for any given turn, check for a stalemate, if the 
+         * now person's turn has any moves for any of its pieces, 
+         * and the king is not in check, game over, it is a stalemate
+         */
         int counter = 0;
         for (Piece piece: pieces) {
             if (piece.color.equals(turn)) {
